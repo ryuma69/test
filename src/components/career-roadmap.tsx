@@ -51,6 +51,9 @@ const roadmapData: RoadmapData = {
   },
 };
 
+export const allCareerStreams = Object.keys(roadmapData);
+
+
 const RoadmapMilestone = ({ title, milestones }: { title: string; milestones: string[] }) => (
   <div className="relative pl-8">
     <div className="absolute left-0 top-0 flex h-full">
