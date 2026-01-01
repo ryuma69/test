@@ -31,56 +31,29 @@ export default function Home() {
 
     setIsLoading(true);
     
-    // Set up a listener that will run once.
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // We only want this to run once, so we unsubscribe immediately.
-      unsubscribe();
-
-      if (user) {
-        // User is signed in.
-        try {
-          await updateProfile(user, {
-            displayName: name,
-          });
-          toast({
-            title: `Welcome, ${name}!`,
-            description: 'Your anonymous session has started.',
-          });
-          router.push('/quiz');
-        } catch (error) {
-            console.error('Update profile failed:', error);
-            toast({
-                title: 'Update Failed',
-                description: 'Could not save your name. Please try again.',
-                variant: 'destructive',
-            });
-            setIsLoading(false);
-        }
-        // Don't set loading to false here, as we are navigating away.
+    try {
+      const userCredential = await initiateAnonymousSignIn(auth);
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name,
+        });
+        toast({
+          title: `Welcome, ${name}!`,
+          description: 'Your anonymous session has started.',
+        });
+        router.push('/quiz');
       } else {
-        // User is signed out or sign-in failed.
-        console.error('Anonymous sign-in failed.');
-        toast({
-            title: 'Authentication Failed',
-            description: 'Could not start your session. Please try again.',
-            variant: 'destructive',
-        });
-        setIsLoading(false);
+        throw new Error("Sign in did not return a user.");
       }
-    }, (error) => {
-        // This callback handles errors during the listener setup.
-        unsubscribe();
-        console.error('onAuthStateChanged error:', error);
-        toast({
-            title: 'Authentication Error',
-            description: 'An unexpected error occurred. Please try again.',
-            variant: 'destructive',
-        });
-        setIsLoading(false);
-    });
-
-    // Initiate the sign-in process. The listener above will catch the result.
-    initiateAnonymousSignIn(auth);
+    } catch (error) {
+      console.error('Anonymous sign-in failed:', error);
+      toast({
+          title: 'Authentication Failed',
+          description: 'Could not start your session. Please try again.',
+          variant: 'destructive',
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
