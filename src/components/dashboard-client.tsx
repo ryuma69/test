@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
 import { simulateCareerStream, type SimulateCareerStreamOutput } from '@/ai/flows/stream-explorer-simulation';
 import { generateDetailedReport, type DetailedReportOutput } from '@/ai/flows/detailed-report-generation';
 
@@ -11,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Bot, BookOpen, Map, FileText, ThumbsUp, ThumbsDown, Loader } from 'lucide-react';
+import { ArrowRight, Bot, BookOpen, Map, FileText, ThumbsUp, ThumbsDown, Loader, LogOut } from 'lucide-react';
 
 import CareerRoadmap from './career-roadmap';
 import CollegeLocator from './college-locator';
@@ -26,6 +27,7 @@ export default function DashboardClient({ aptitudeAnalysisAction }: { aptitudeAn
   const [isSimulating, startSimulatingTransition] = useTransition();
   const [isReporting, startReportingTransition] = useTransition();
 
+  const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
   const [analysis, setAnalysis] = useState<AptitudeAnalysis | null>(null);
@@ -105,6 +107,13 @@ export default function DashboardClient({ aptitudeAnalysisAction }: { aptitudeAn
     });
   }
 
+  const handleExit = async () => {
+    await signOut(auth);
+    localStorage.removeItem('quizResults');
+    router.push('/');
+    toast({ title: 'Signed Out', description: 'You have been signed out.' });
+  };
+
   if (pageState === 'loading' || pageState === 'analyzing') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-8">
@@ -122,9 +131,15 @@ export default function DashboardClient({ aptitudeAnalysisAction }: { aptitudeAn
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <header className="max-w-5xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold text-primary">Your Career Dashboard</h1>
-        <p className="text-lg text-muted-foreground">Welcome, {user?.displayName || 'Explorer'}. Here is your personalized path forward.</p>
+      <header className="max-w-5xl mx-auto mb-8 flex justify-between items-center">
+        <div>
+            <h1 className="text-4xl font-bold text-primary">Your Career Dashboard</h1>
+            <p className="text-lg text-muted-foreground">Welcome, {user?.displayName || 'Explorer'}. Here is your personalized path forward.</p>
+        </div>
+        <Button variant="outline" onClick={handleExit}>
+          <LogOut className="mr-2" />
+          Exit
+        </Button>
       </header>
 
       <main className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
