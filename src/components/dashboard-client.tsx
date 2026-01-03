@@ -211,7 +211,9 @@ export default function DashboardClient({
   };
 
   const handleExit = async () => {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
     localStorage.removeItem('quizResults');
     router.push('/');
   };
