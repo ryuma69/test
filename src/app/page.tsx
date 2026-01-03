@@ -18,6 +18,10 @@ export default function Home() {
   }, []);
 
   const handleGoogleSignIn = async () => {
+    if (!auth) {
+      console.error("Auth is not ready yet.");
+      return;
+    }
     setIsLoading(true);
     try {
       const userCredential = await initiateGoogleSignIn(auth);
@@ -51,7 +55,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-4">
-              <Button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full" size="lg">
+              <Button onClick={handleGoogleSignIn} disabled={isLoading || !auth} className="w-full" size="lg">
                 {isLoading ? 'Starting...' : 'Sign in with Google'}
               </Button>
             </div>
