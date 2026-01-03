@@ -24,7 +24,15 @@ const AnalyzeAptitudeOutputSchema = z.object({
 export type AnalyzeAptitudeOutput = z.infer<typeof AnalyzeAptitudeOutputSchema>;
 
 export async function analyzeAptitude(input: AnalyzeAptitudeInput): Promise<AnalyzeAptitudeOutput> {
-  return analyzeAptitudeFlow(input);
+  try {
+    return await analyzeAptitudeFlow(input);
+  } catch (err) {
+    // Log full error server-side for debugging
+    // eslint-disable-next-line no-console
+    console.error('analyzeAptitude server action failed:', err);
+    // Provide a friendly, non-sensitive error to the client
+    throw new Error('Server error while analyzing aptitude. Check server logs for details.');
+  }
 }
 
 const analyzeAptitudePrompt = ai.definePrompt({
@@ -51,7 +59,18 @@ const analyzeAptitudeFlow = ai.defineFlow(
     outputSchema: AnalyzeAptitudeOutputSchema,
   },
   async input => {
-    const {output} = await analyzeAptitudePrompt(input);
-    return output!;
+    try {
+      const {output} = await analyzeAptitudePrompt(input);
+      return output!;
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      if (/Model.*not found|NOT_FOUND|not found/i.test(msg)) {
+        const model = process.env.GENKIT_MODEL || '<unset>';
+        throw new Error(
+          `AI model error: Model '${model}' not found. Set a valid model name in the GENKIT_MODEL environment variable (for example 'googleai/gemini-1.0'), or verify the model availability with your provider. Original error: ${msg}`
+        );
+      }
+      throw err;
+    }
   }
 );
