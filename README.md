@@ -60,6 +60,7 @@ VidhyaSarathi addresses this gap by combining **aptitude evaluation** with **sce
 - AI-generated stream exploration scenarios
 - Restart / exit journey option
 - Clean and simple UI for demos
+- A small forum which collects the intrest of the user
 
 ---
 
